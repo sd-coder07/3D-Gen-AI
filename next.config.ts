@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   experimental: {
@@ -7,7 +8,7 @@ const nextConfig: NextConfig = {
     },
   },
 
-  // Allow images from any domain (for future use)
+  // Allow images from any domain
   images: {
     remotePatterns: [
       {
@@ -17,8 +18,11 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Use empty turbopack config — Next.js 16 defaults to Turbopack
-  turbopack: {},
+  // Set Turbopack root to current project directory
+  turbopack: {
+    root: path.resolve(__dirname),
+  },
 };
 
 export default nextConfig;
+
