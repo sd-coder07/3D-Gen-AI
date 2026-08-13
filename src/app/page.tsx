@@ -180,12 +180,12 @@ export default function HomePage() {
         <div className="header-container">
           {/* Logo Left */}
           <a href="/" className="scope-logo">
-            <svg className="scope-logo-icon" viewBox="0 0 36 36" fill="none">
-              <circle cx="18" cy="18" r="14" stroke="currentColor" strokeWidth="2" />
-              <ellipse cx="18" cy="18" rx="14" ry="6" stroke="currentColor" strokeWidth="1.5" transform="rotate(30 18 18)" />
-              <ellipse cx="18" cy="18" rx="14" ry="6" stroke="currentColor" strokeWidth="1.5" transform="rotate(-30 18 18)" />
-            </svg>
-            <span className="scope-logo-text">3DGen AI</span>
+            <img
+              src="/logo-dark.png"
+              alt="3DGen AI Logo"
+              className="scope-logo-img"
+              style={{ height: "36px", width: "auto", objectFit: "contain", borderRadius: "4px" }}
+            />
           </a>
 
           {/* Navigation Links Center */}

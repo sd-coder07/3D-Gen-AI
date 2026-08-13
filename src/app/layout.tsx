@@ -13,6 +13,11 @@ export const metadata: Metadata = {
     "free 3d generator",
     "GLB download",
   ],
+  icons: {
+    icon: "/favicon-3d.png",
+    shortcut: "/favicon-3d.png",
+    apple: "/apple-touch-icon.png",
+  },
   verification: {
     google: "lGh4hvVQCz6I8QQjLh8LI22jjr4aGkhG-s_QJ4RPVz0",
   },
@@ -31,6 +36,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/favicon-3d.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
