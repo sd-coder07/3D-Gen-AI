@@ -13,6 +13,9 @@ export const metadata: Metadata = {
     "free 3d generator",
     "GLB download",
   ],
+  verification: {
+    google: "lGh4hvVQCz6I8QQjLh8LI22jjr4aGkhG-s_QJ4RPVz0",
+  },
   openGraph: {
     title: "3DGen AI — Magic From 3D Model Generator",
     description: "Create 3D models with the help of AI instantly.",
