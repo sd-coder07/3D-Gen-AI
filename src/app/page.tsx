@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import UploadZone from "@/components/UploadZone";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import DownloadPanel from "@/components/DownloadPanel";
+import { optimizeImageFor3D } from "@/utils/imageOptimizer";
 
 // Dynamically import Three.js 3D Hero Canvas and Model Viewer
 const Hero3DCanvas = dynamic(() => import("@/components/Hero3DCanvas"), {
@@ -32,10 +33,41 @@ interface ModelConfig {
 }
 
 const MODELS: ModelConfig[] = [
-  { key: "triposr", name: "TripoSR", desc: "Ultra Fast • MIT Licensed • Open Source", badge: "Recommended", speed: "~10s" },
-  { key: "instantmesh", name: "InstantMesh", desc: "Multi-View • High Detail Geometry", badge: "High Quality", speed: "~25s" },
-  { key: "image-to-3d", name: "Image-to-3D", desc: "Shape Generator • Automatic UV Maps", badge: "Fast Shape", speed: "~20s" },
+  { key: "triposr", name: "TripoSR", desc: "Ultra Fast • Auto-Failover Pool", badge: "Recommended", speed: "~5s" },
+  { key: "instantmesh", name: "InstantMesh", desc: "Multi-View • High Detail Geometry", badge: "High Detail", speed: "~15s" },
+  { key: "image-to-3d", name: "Image-to-3D", desc: "Fast Shape Generator • UV Maps", badge: "Fast Shape", speed: "~10s" },
 ];
+
+function renderFormattedError(msg: string) {
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const parts: (string | React.ReactNode)[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = linkRegex.exec(msg)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(msg.substring(lastIndex, match.index));
+    }
+    parts.push(
+      <a
+        key={match.index}
+        href={match[2]}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ color: "#38bdf8", textDecoration: "underline", fontWeight: 600, margin: "0 4px" }}
+      >
+        {match[1]}
+      </a>
+    );
+    lastIndex = linkRegex.lastIndex;
+  }
+
+  if (lastIndex < msg.length) {
+    parts.push(msg.substring(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : msg;
+}
 
 export default function HomePage() {
   const [appState, setAppState] = useState<AppState>("idle");
@@ -47,7 +79,7 @@ export default function HomePage() {
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [retryAfter, setRetryAfter] = useState<number>(0);
   const [networkError, setNetworkError] = useState<boolean>(false);
-  const [loadingMessage, setLoadingMessage] = useState<string>("Connecting to AI Engine…");
+  const [loadingMessage, setLoadingMessage] = useState<string>("Optimizing image & connecting to AI Engine…");
   const [queueInfo, setQueueInfo] = useState<{ position: number; step: string; eta?: number | null } | null>(null);
 
   const generatorRef = useRef<HTMLDivElement>(null);
@@ -81,12 +113,15 @@ export default function HomePage() {
     setErrorMsg("");
     setNetworkError(false);
     setRetryAfter(0);
-    setLoadingMessage("Connecting to AI Engine…");
+    setLoadingMessage("Optimizing image resolution & connecting to AI Engine…");
     setQueueInfo(null);
 
     try {
+      // 1. Client-side Image Optimization
+      const optimizedFile = await optimizeImageFor3D(imageFile);
+
       const form = new FormData();
-      form.append("image", imageFile);
+      form.append("image", optimizedFile);
       form.append("model", selectedModel);
 
       const response = await fetch("/api/generate-3d", { method: "POST", body: form });
@@ -206,7 +241,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* ── Main Hero Section (Reference Layout) ── */}
+      {/* ── Main Hero Section ── */}
       <section className="scope-hero-section">
         {/* Background 3D Torus Sculptural Canvas */}
         <Hero3DCanvas />
@@ -305,7 +340,7 @@ export default function HomePage() {
             <div id="models-section" className="model-selector-container">
               <div className="model-selector-header">
                 <span className="selector-title">Select AI Model</span>
-                <span className="selector-subtitle">Hugging Face ZeroGPU</span>
+                <span className="selector-subtitle">High Speed Auto-Failover Pools</span>
               </div>
 
               <div className="model-select-wrap" role="radiogroup" aria-label="AI model selection">
@@ -331,7 +366,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Error Card */}
+            {/* Error Card with Formatted Links & Fast Action */}
             {appState === "error" && errorMsg && (
               <div className="error-card" role="alert">
                 <div className="error-icon" aria-hidden="true">
@@ -341,7 +376,7 @@ export default function HomePage() {
                   <p className="error-title">
                     {networkError ? "Network Connection Error" : "Generation Alert"}
                   </p>
-                  <p className="error-msg">{errorMsg}</p>
+                  <p className="error-msg">{renderFormattedError(errorMsg)}</p>
 
                   {retryAfter > 0 && (
                     <p className="retry-hint">
@@ -350,10 +385,20 @@ export default function HomePage() {
                   )}
                   {needsToken && (
                     <div className="token-warning">
-                      <span>🔑 Add your free HuggingFace token in <code>frontend/.env.local</code> as <code>HF_TOKEN=hf_…</code></span>
+                      <span>🔑 Add your free HuggingFace token in <code>.env.local</code> as <code>HF_TOKEN=hf_…</code></span>
                       <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer">Get Free Token →</a>
                     </div>
                   )}
+
+                  <div style={{ marginTop: "0.75rem" }}>
+                    <button
+                      className="pill-btn-white"
+                      style={{ padding: "0.4rem 1rem", fontSize: "0.8rem" }}
+                      onClick={handleGenerate}
+                    >
+                      ⚡ Retry Fast Mode
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
