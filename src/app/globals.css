@@ -139,26 +139,29 @@ html, body {
   justify-content: space-between;
 }
 
-.scope-logo {
+.scope-logo-wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 5px 12px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  text-decoration: none;
-  color: var(--text-primary);
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.scope-logo-icon {
-  width: 32px;
-  height: 32px;
-  color: #ffffff;
+.scope-logo-wrapper:hover {
+  transform: translateY(-1px);
+  background: #ffffff;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
 }
 
-.scope-logo-text {
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #ffffff;
+.scope-logo-img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .scope-nav {
