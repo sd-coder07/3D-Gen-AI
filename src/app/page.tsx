@@ -180,13 +180,11 @@ export default function HomePage() {
         <div className="header-container">
           {/* Logo Left */}
           <a href="/" className="scope-logo" aria-label="3DGen AI Home">
-            <div className="scope-logo-wrapper">
-              <img
-                src="/logo-light.png"
-                alt="3DGen AI Logo"
-                className="scope-logo-img"
-              />
-            </div>
+            <img
+              src="/logo-light.png"
+              alt="3DGen AI Logo"
+              className="scope-logo-img"
+            />
           </a>
 
           {/* Navigation Links Center */}
