@@ -5,7 +5,8 @@ import path from "path";
 import os from "os";
 import { generateFallbackGlbBuffer } from "@/utils/fallbackGlb";
 
-export const maxDuration = 300; // 5 minutes max
+// Vercel Serverless Function Max Duration (Hobby Free Tier limit is 60 seconds)
+export const maxDuration = 60;
 
 function sseEncode(data: Record<string, unknown>): Uint8Array {
   return new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`);
@@ -64,7 +65,7 @@ const TRIPOSR_SPACES = [
   "stabilityai/TripoSR",
 ];
 
-// ── Helper: Single TripoSR space runner ──
+// ── Helper: Single TripoSR space runner (Vercel Optimized) ──
 async function runTripoSRSingleSpace(
   spaceId: string,
   tmpFilePath: string,
@@ -75,7 +76,7 @@ async function runTripoSRSingleSpace(
 
   const client = await withTimeout(
     Client.connect(spaceId, token ? { token: token as `hf_${string}` } : {}),
-    35000,
+    15000,
     `Connecting to ${spaceId} timed out.`
   );
 
@@ -87,7 +88,7 @@ async function runTripoSRSingleSpace(
       true, // remove background
       0.85, // foreground ratio
     ]) as Promise<{ data: Array<unknown> }>,
-    45000,
+    20000,
     "Background removal timed out."
   );
 
@@ -114,7 +115,7 @@ async function runTripoSRSingleSpace(
       imgInput,
       256, // Marching Cubes resolution 256 for detailed 3D geometry
     ]) as Promise<{ data: Array<unknown> }>,
-    120000,
+    45000, // Capped to stay within Vercel's 60s function limit
     "TripoSR 3D generation timed out."
   );
 
@@ -156,7 +157,7 @@ async function runTripoSR(
   throw lastError || new Error("TripoSR space unavailable.");
 }
 
-// ── Helper: InstantMesh runner (Full High-Detail Geometry) ──
+// ── Helper: InstantMesh runner (Vercel Optimized) ──
 async function runInstantMesh(
   tmpFilePath: string,
   token: string | undefined,
@@ -166,7 +167,7 @@ async function runInstantMesh(
 
   const client = await withTimeout(
     Client.connect("TencentARC/InstantMesh", token ? { token: token as `hf_${string}` } : {}),
-    35000,
+    15000,
     "Connecting to InstantMesh timed out."
   );
 
@@ -177,7 +178,7 @@ async function runInstantMesh(
       handle_file(tmpFilePath),
       true,
     ]) as Promise<{ data: Array<unknown> }>,
-    45000,
+    20000,
     "InstantMesh preprocessing timed out."
   );
 
@@ -194,15 +195,15 @@ async function runInstantMesh(
     }
   }
 
-  send({ type: "status", step: "generate_mvs", message: "Step 2 / 3 — Generating multi-view representations (30 steps)…" });
+  send({ type: "status", step: "generate_mvs", message: "Step 2 / 3 — Generating multi-view representations…" });
 
   const mvsRes = await withTimeout(
     client.predict("/generate_mvs", [
       pImgInput,
-      30, // MUST BE >= 30 for InstantMesh Gradio space validation!
+      30, // Minimum valid sample steps for InstantMesh
       42,
     ]) as Promise<{ data: Array<unknown> }>,
-    90000,
+    25000,
     "InstantMesh multi-view generation timed out."
   );
 
@@ -215,7 +216,7 @@ async function runInstantMesh(
     client.predict("/make3d", [
       mvsData,
     ]) as Promise<{ data: Array<unknown> }>,
-    90000,
+    25000,
     "InstantMesh 3D mesh creation timed out."
   );
 
@@ -234,7 +235,7 @@ async function runInstantMesh(
   return glbUrl;
 }
 
-// ── Helper: Image-to-3D shape runner ──
+// ── Helper: Image-to-3D shape runner (Vercel Optimized) ──
 async function runImageTo3D(
   tmpFilePath: string,
   token: string | undefined,
@@ -244,7 +245,7 @@ async function runImageTo3D(
 
   const client = await withTimeout(
     Client.connect("frogleo/Image-to-3D", token ? { token: token as `hf_${string}` } : {}),
-    35000,
+    15000,
     "Connecting to Image-to-3D timed out."
   );
 
@@ -253,15 +254,15 @@ async function runImageTo3D(
   const shapeRes = await withTimeout(
     client.predict("/gen_shape", [
       handle_file(tmpFilePath),
-      30,    // 30 steps
+      20,    // 20 steps for faster Vercel execution
       5.0,   // guidance scale
       42,    // seed
       256,   // octree res
-      8000,  // chunks
-      10000, // target face count
+      6000,  // chunks
+      6000,  // target face count
       true,  // randomize seed
     ]) as Promise<{ data: Array<unknown> }>,
-    120000,
+    45000,
     "Image-to-3D shape generation timed out."
   );
 
